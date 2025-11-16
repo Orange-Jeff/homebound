@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HomeBound - Mission Calendar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#ec7f13",
+                    "background-dark": "#221910",
+                },
+                fontFamily: {
+                    "display": ["Space Grotesk", "sans-serif"]
+                }
+            }
+        }
+    }
+</script>
+<style>
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+</style>
+</head>
+<body class="bg-background-dark font-display">
+<div class="relative mx-auto flex min-h-screen w-full max-w-4xl flex-col bg-[#221a11] p-4">
+
+    <!-- Header -->
+    <header class="mb-6 rounded-lg border border-primary/30 bg-[#221a11] p-6 text-center">
+        <div class="flex items-center justify-center gap-3 mb-2">
+            <span class="material-symbols-outlined text-primary text-5xl">rocket_launch</span>
+            <h1 class="text-4xl font-bold uppercase tracking-widest text-primary">HomeBound</h1>
+        </div>
+        <p class="text-text-light/70 text-sm uppercase tracking-wider">Mission Archives</p>
+    </header>
+
+    <!-- Welcome Message -->
+    <div class="mb-6 rounded-lg border border-primary/20 bg-black/20 p-6">
+        <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-primary text-4xl">info</span>
+            <div class="flex-1">
+                <h2 class="text-xl font-bold text-primary mb-2">Welcome, Commander</h2>
+                <p class="text-white/80 leading-relaxed mb-3">
+                    Each day brings a new adventure. Navigate through 3 critical turns, make the right choices, and complete your mission.
+                    Wrong choices lead to mission failure, but you can always try again!
+                </p>
+                <p class="text-white/60 text-sm" id="last-played-message">
+                    <!-- Populated by JavaScript -->
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {{day_cards}}
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-auto pt-6 border-t border-primary/30">
+        <div class="flex items-center justify-between text-primary/50 text-sm">
+            <p>© HomeBound Mission Control</p>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xl">wifi</span>
+                <span>Connection: Stable</span>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    // Cookie management for last played day
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    function setCookie(name, value, days) {
+        const expires = new Date();
+        expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+    }
+
+    // Check last played day
+    const lastPlayed = getCookie('homebound_last_day');
+    const messageEl = document.getElementById('last-played-message');
+
+    if (lastPlayed) {
+        messageEl.innerHTML = `<span class="text-primary">●</span> Last played: Day ${lastPlayed}`;
+
+        // Highlight the last played card
+        const dayCards = document.querySelectorAll('.day-card');
+        dayCards.forEach(card => {
+            const href = card.getAttribute('href');
+            if (href && href.includes(`day-${lastPlayed}.html`)) {
+                card.classList.add('ring-2', 'ring-primary');
+                const badge = document.createElement('div');
+                badge.className = 'absolute -top-2 -right-2 bg-primary text-background-dark text-xs font-bold px-2 py-1 rounded-full';
+                badge.textContent = 'LAST PLAYED';
+                card.style.position = 'relative';
+                card.appendChild(badge);
+            }
+        });
+    } else {
+        messageEl.innerHTML = '<span class="text-primary/50">No missions completed yet. Start with Day 1!</span>';
+    }
+
+    // Track day clicks
+    document.querySelectorAll('.day-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            const match = href.match(/day-(\d+)\.html/);
+            if (match) {
+                setCookie('homebound_last_day', match[1], 365);
+            }
+        });
+    });
+
+    // Add pulsing animation to newest day
+    const dayCards = document.querySelectorAll('.day-card');
+    if (dayCards.length > 0) {
+        const newestCard = dayCards[dayCards.length - 1];
+        newestCard.classList.add('animate-pulse');
+        setTimeout(() => newestCard.classList.remove('animate-pulse'), 3000);
+    }
+</script>
+</body>
+</html>
